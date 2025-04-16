@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/03/31 13:40:38 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/16 17:08:41 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,8 @@
 # include <unistd.h>
 # include <sys/time.h>
 # include <stdbool.h>
+# include <string.h>
+# include <limits.h>
 
 typedef struct s_philo
 {
@@ -39,7 +41,8 @@ typedef struct s_data
 	int			time_to_eat;
 	int			time_to_sleep;
 	int			nb_must_eat;
-	int			is_dead;
+	bool		all_ate_enough;
+	bool		simulation_over;
 	long long	start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	print_mutex;
@@ -47,12 +50,5 @@ typedef struct s_data
 	pthread_mutex_t	end_mutex;
 	t_philo		*philos;
 }	t_data;
-
-/* Prototypes des fonctions utilitaires */
-long long	obtenir_temps_ms(void);
-void		attendre_ms(int ms);
-
-/* Prototype de la routine du philosophe */
-void		*routine_philosophe(void *philosophe);
 
 #endif
