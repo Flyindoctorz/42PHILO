@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/16 17:08:41 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/17 11:53:59 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,4 +51,11 @@ typedef struct s_data
 	t_philo		*philos;
 }	t_data;
 
+long long 		get_time_ms(void);
+void 			wait_ms(int ms);
+
+void			*routine_philo(void *philosophe);
+void			*monitor_philos(void *data_ptr);
+void			*cleanup_rsrcs(t_data *data);
+	
 #endif
