@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 14:03:41 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 16:15:02 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:30:00 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,7 +67,7 @@ int	main(int ac, char **av)
 		printf("[number_of_times_each_philosopher_must_eat]\n");
 		return (1);
 	}
-	if (initialize_philosophers(&data, ac, av) == false)
+	if (initialize_philosophers(&data, ac, av) != 0)
 		return (1);
 	if (!init_threads(&data))
 	{

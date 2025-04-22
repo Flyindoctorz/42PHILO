@@ -6,7 +6,7 @@
 #    By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/22 17:00:14 by cgelgon           #+#    #+#              #
-#    Updated: 2025/04/22 17:11:16 by cgelgon          ###   ########.fr        #
+#    Updated: 2025/04/22 17:45:54 by cgelgon          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -56,12 +56,11 @@ BOLD = \033[1m
 # Règles de nettoyage
 clean:
 	@echo "$(RED)Cleaning object files...$(RESET)"
-	@rm -rf $(+NAME)
+	@rm -rf $(OBJS)
 	@echo "$(GREEN)✨ Cleaned!$(RESET)"
 
 fclean: clean
 	@echo "$(RED)Removing $(NAME)...$(RESET)"
-	@$(MAKE) -C $(LIBFT_DIR) fclean
 	@rm -f $(NAME)
 	@echo "$(GREEN)✨ Everything cleaned!$(RESET)"
 
@@ -88,4 +87,4 @@ debug:
 	@echo "$(BLUE)Running lldb...$(RESET)"
 	@lldb ./$(NAME)
 
-.PHONY: clean fclean norm push
+.PHONY: clean fclean norm push re debug all

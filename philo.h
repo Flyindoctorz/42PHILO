@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 16:09:07 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:31:54 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,6 +54,7 @@ typedef struct s_data
 // philo_utils
 long long	get_time_ms(void);
 void		wait_ms(int ms);
+bool		is_valid_number(char *str);
 
 // daily routine
 void	*routine_philosophe(void *philosophe);

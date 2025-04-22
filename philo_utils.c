@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:41:20 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/03/31 14:02:44 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:31:40 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,4 +29,18 @@ void	wait_ms(int ms)
 	start = get_time_ms();
 	while (get_time_ms() - start < ms)
 		usleep(100);
+}
+
+bool	is_valid_number(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return (false);
+		i++;
+	}
+	return (true);
 }

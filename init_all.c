@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/17 11:51:08 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 17:12:55 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:32:38 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,15 @@
 
 bool	parse_args(t_data *data, int ac, char **av)
 {
+	int	i;
+
+	i = 1;
+	while (i < ac)
+	{
+		if (!is_valid_number(av[i]))
+			return (false);
+		i++;
+	}
 	data->nb_philo = atoi(av[1]);
 	data->time_to_die = atoi(av[2]);
 	data->time_to_eat = atoi(av[3]);

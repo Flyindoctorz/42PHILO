@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:41:57 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 15:44:46 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:52:35 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,16 +32,16 @@ static void	takeafork(t_philo *philo)
 	if (philo->id % 2 == 0)
 	{
 		pthread_mutex_lock(philo->right_fork);
-		get_status(philo, "has taken a fork");
+		get_status(philo, "has taken a right fork");
 		pthread_mutex_lock(philo->left_fork);
-		get_status(philo, "has taken a fork");
+		get_status(philo, "has taken a left fork");
 	}
 	else
 	{
 		pthread_mutex_lock(philo->left_fork);
-		get_status(philo, "has taken a fork");
+		get_status(philo, "has taken a left fork");
 		pthread_mutex_lock(philo->right_fork);
-		get_status(philo, "has taken a fork");
+		get_status(philo, "has taken a right fork");
 	}
 }
 
@@ -70,6 +70,15 @@ void	*routine_philosophe(void *philosophe)
 
 	philo = (t_philo *)philosophe;
 	data = philo->data;
+	if (data->nb_philo == 1)
+	{
+		get_status(philo, "is thinking");
+		pthread_mutex_lock(philo->left_fork);
+		get_status(philo, "has taken a fork");
+		wait_ms(data->time_to_die + 1);
+		pthread_mutex_unlock(philo->left_fork);
+		return (NULL);
+	}
 	if (philo->id % 2 != 0)
 		usleep(1000);
 	while (!simulation_over(data))
