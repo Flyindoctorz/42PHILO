@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/17 11:51:08 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 15:41:10 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:12:55 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ bool	parse_args(t_data *data, int ac, char **av)
 		data->nb_must_eat = atoi(av[5]);
 	else
 		data->nb_must_eat = -1;
-	if (data->nb_philo <= 2 || data->time_to_die <= 0 || data->time_to_eat <= 0
+	if (data->nb_philo < 1 || data->time_to_die <= 0 || data->time_to_eat <= 0
 		|| data->time_to_sleep <= 0 || (ac == 6 && data->nb_must_eat <= 0))
 		return (false);
 	return (true);

@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 15:02:43 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 15:02:56 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 17:13:49 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,6 @@ void	cleanup(t_data *data)
 	pthread_mutex_destroy(&data->print_mutex);
 	pthread_mutex_destroy(&data->mealtime_mutex);
 	pthread_mutex_destroy(&data->end_mutex);
-	if (!data->philos)
+	if (data->philos)
 		(free(data->philos));
 }
