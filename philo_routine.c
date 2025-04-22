@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:41:57 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 17:52:35 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 18:00:15 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,7 @@ void	*routine_philosophe(void *philosophe)
 		return (NULL);
 	}
 	if (philo->id % 2 != 0)
-		usleep(1000);
+		usleep(5000);
 	while (!simulation_over(data))
 	{
 		get_status(philo, "is thinking");
