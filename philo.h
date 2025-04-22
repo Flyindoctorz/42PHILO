@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 14:24:29 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 16:09:07 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ typedef struct s_data
 	int				time_to_sleep;
 	int				nb_must_eat;
 	bool			all_ate;
-	int				is_dead;
+	bool			is_dead;
 	long long		start_time;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	print_mutex;
@@ -51,16 +51,31 @@ typedef struct s_data
 	t_philo			*philos;
 }	t_data;
 
+// philo_utils
 long long	get_time_ms(void);
 void		wait_ms(int ms);
 
-
-int		initialize_philosophers(t_data *data, int ac, char **av);
-
+// daily routine
 void	*routine_philosophe(void *philosophe);
 
+// free && cleanup
 void		cleanup(t_data *data);
 
+// pre_init
+bool		parse_args(t_data *data, int ac, char **av);
+bool		init_simulation(t_data *data);
+
+// init 
+int		initialize_philosophers(t_data *data, int ac, char **av);
+
+// checker 
+bool		simulation_over(t_data *data);
+bool		check_death(t_data *data);
+bool		check_meals(t_data *data);
+void		*reaper_routine(void *data);
+
+// main
+void		join_threads(t_data *data);
 
 
 #endif

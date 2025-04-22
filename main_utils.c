@@ -6,27 +6,11 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 13:00:06 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 14:20:17 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 15:42:15 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
-
-static bool	parse_args(t_data *data, int ac, char **av)
-{
-	data->nb_philo = atoi(av[1]);
-	data->time_to_die = atoi(av[2]);
-	data->time_to_eat = atoi(av[3]);
-	data->time_to_sleep = atoi(av[4]);
-	if (ac == 6)
-	data->nb_must_eat = atoi(av[5]);
-	else
-		data->nb_must_eat = -1;
-	if (data->nb_philo <= 2 || data->time_to_die <= 0 || data->time_to_eat <= 0 ||
-		data->time_to_sleep <= 0 || (ac == 6 && data->nb_must_eat <= 0))
-		return false;
-	return true;
-}
 
 static bool	init_data(t_data *data)
 {

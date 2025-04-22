@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/17 11:51:08 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/17 11:56:21 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/22 15:41:10 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,62 +19,61 @@ bool	parse_args(t_data *data, int ac, char **av)
 	data->time_to_eat = atoi(av[3]);
 	data->time_to_sleep = atoi(av[4]);
 	if (ac == 6)
-	data->nb_must_eat = atoi(av[5]);
+		data->nb_must_eat = atoi(av[5]);
 	else
 		data->nb_must_eat = -1;
-	if (data->nb_philo <= 2 || data->time_to_die <= 0 || data->time_to_eat <= 0 ||
-		data->time_to_sleep <= 0 || (ac == 6 && data->nb_must_eat <= 0))
-		return false;
-	return true;
+	if (data->nb_philo <= 2 || data->time_to_die <= 0 || data->time_to_eat <= 0
+		|| data->time_to_sleep <= 0 || (ac == 6 && data->nb_must_eat <= 0))
+		return (false);
+	return (true);
 }
 
 static bool	init_data(t_data *data)
 {
-	data->simulation_over = false;
-	data->all_ate_enough = false;
+	data->is_dead = false;
+	data->all_ate = false;
 	data->forks = malloc(sizeof(pthread_mutex_t) * data->nb_philo);
 	if (!data->forks)
 	{
 		printf("Error: malloc failed\n");
-		return false;
+		return (false);
 	}
 	data->philos = malloc(sizeof(t_philo) * data->nb_philo);
 	if (!data->philos)
 	{
 		printf("Error: malloc failed\n");
 		free(data->forks);
-		return false;
+		return (false);
 	}
 	return (true);
 }
 
-
-bool	mutexes_init(t_data *data)
+static bool	init_mutexes(t_data *data)
 {
 	int	i;
-	
+
 	i = 0;
 	while (i < data->nb_philo)
 	{
 		if (pthread_mutex_init(&data->forks[i], NULL))
-		{	
+		{
 			printf("Error: mutex initialization failed\n");
-			return false;
+			return (false);
 		}
 		i++;
 	}
 	if (pthread_mutex_init(&data->print_mutex, NULL))
-			return false;
+		return (false);
 	if (pthread_mutex_init(&data->mealtime_mutex, NULL))
-			return false;
+		return (false);
 	if (pthread_mutex_init(&data->end_mutex, NULL))
-			return false;
-	return true;
+		return (false);
+	return (true);
 }
-bool	philos_init(t_data *data)
+static bool	init_philos(t_data *data)
 {
 	int	i;
-	
+
 	i = 0;
 	while (i < data->nb_philo)
 	{
@@ -85,10 +84,9 @@ bool	philos_init(t_data *data)
 		data->philos[i].left_fork = &data->forks[i];
 		data->philos[i].right_fork = &data->forks[(i + 1) % data->nb_philo];
 		data->philos[i].data = data;
-		
 		i++;
 	}
-	return true;
+	return (true);
 }
 bool	init_simulation(t_data *data)
 {
