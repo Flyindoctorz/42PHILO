@@ -6,7 +6,7 @@
 #    By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/22 17:00:14 by cgelgon           #+#    #+#              #
-#    Updated: 2025/04/22 17:45:54 by cgelgon          ###   ########.fr        #
+#    Updated: 2025/04/23 12:51:55 by cgelgon          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,13 +18,14 @@ LDFLAGS = -pthread
 
 SRC_DIR = .
 
-SRC_FILES = philo_utils.c \
-			philo_routine.c \
-			init_all.c \
-			checker.c \
-			cleaner.c \
-			main_utils.c \
-			main.c \
+SRC_FILES = 	philo_utils.c \
+				philo_routine.c \
+				init_all.c \
+				checker.c \
+				cleaner.c \
+				main_utils.c \
+				routine_core.c \
+				main.c 
 			
 SRCS = $(addprefix $(SRC_DIR)/, $(SRC_FILES))
 

@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 14:03:41 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 17:59:50 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/23 11:21:30 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,16 +19,10 @@ static bool	init_threads(t_data *data)
 	pthread_t	reaper;
 
 	data->start_time = get_time_ms();
-	
-    i = 0;
-    while (i < data->nb_philo)
-    {
-        data->philos[i].last_meal_time = data->start_time;
-        i++;
-    }   
     i = 0;	
 	while (i < data->nb_philo)
 	{
+		data->philos[i].last_meal_time = data->start_time;
 		if (pthread_create(&data->philos[i].thread, NULL, routine_philosophe,
 				(void *)&data->philos[i]) != 0)
 		{
@@ -37,6 +31,7 @@ static bool	init_threads(t_data *data)
 		}
 		i++;
 	}
+	usleep(5000);
 	if (pthread_create(&reaper, NULL, reaper_routine,
 				(void *)data) != 0)
 	{

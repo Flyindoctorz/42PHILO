@@ -6,72 +6,69 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 13:00:06 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 17:48:03 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/23 14:01:06 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-// static bool	init_data(t_data *data)
+
+// void	opti_delay(t_philo *philo)
 // {
-// 	data->is_dead = false;
-// 	data->all_ate = false;
-// 	data->start_time = get_time_ms();
-	
-// 	data->forks = malloc(sizeof(pthread_mutex_t) * data->nb_philo);
-// 	if (!data->forks)
-// 		return false;
-// 	data->philos = malloc(sizeof(t_philo) * data->nb_philo);
-// 	if (!data->philos)
-// 	{
-// 		free(data->forks);
-// 		return false;
-// 	}
-// 	return true;
+// 	int		base_delay;
+// 	t_data	*data;
+
+// 	data = philo->data;
+// 	base_delay = (data->time_to_eat * 200) / data->nb_philo;
+// 	if (philo->id % 2 == 0)
+// 		usleep(base_delay * (1 + philo->id % 10) / 5);
+// 	if (data->nb_philo > 50 && philo->id > data->nb_philo / 2)
+// 		usleep(base_delay);
 // }
 
+void opti_delay(t_philo *philo)
+{
+    t_data *data;
+    int base_delay;
 
-// static bool	mutexes_init(t_data *data)
-// {
-// 	int	i;
-	
-// 	i = 0;
-// 	while (i < data->nb_philo)
-// 	{
-// 		if (pthread_mutex_init(&data->forks[i], NULL))
-// 		{	
-// 			printf("Error: mutex initialization failed\n");
-// 			return false;
-// 		}
-// 		i++;
-// 	}
-// 	if (pthread_mutex_init(&data->print_mutex, NULL))
-// 			return false;
-// 	if (pthread_mutex_init(&data->mealtime_mutex, NULL))
-// 			return false;
-// 	if (pthread_mutex_init(&data->end_mutex, NULL))
-// 			return false;
-// 	return true;
-// }
+    data = philo->data;
+    
+    // Calcul d'un délai de base adapté au nombre de philosophes
+    base_delay = 1000; // 1ms de base
+    
+    // Stratégie d'échelonnement:
+    // 1. Délai progressif basé sur l'ID pour éviter que tous les philosophes 
+    //    ne commencent en même temps
+    usleep(base_delay * (philo->id % 3));
+    
+    // 2. Décalage entre pairs et impairs pour faciliter l'alternance
+    if (philo->id % 2 == 0)
+    {
+        // Les philosophes pairs attendent un peu pour laisser les impairs prendre leurs fourchettes
+        usleep(data->time_to_eat * 100); // 1/10 du temps de repas
+    }
+    
+    // 3. Ajustement spécial pour un grand nombre de philosophes
+    if (data->nb_philo > 20)
+    {
+        // Pour les grands groupes, échelonnez davantage les départs
+        usleep(base_delay * (philo->id % 5));
+    }
+}
 
-// static bool	philo_init(t_data *data)
-// {
-// 	int	i;
+// Afficher le statut d'un philosophe
+void	get_status(t_philo *philo, char *statut)
+{
+	long long	current_time;
 
-// 	i = 0;
-// 	while (i < data->nb_philo)
-// 	{
-// 		data->philos[i].id = i + 1;
-// 		data->philos[i].nb_eat = 0;
-// 		data->philos[i].last_meal_time = get_time_ms();
-// 		data->philos[i].currently_eating = false;
-// 		data->philos[i].left_fork = &data->forks[i];
-// 		data->philos[i].right_fork = &data->forks[(i + 1) % data->nb_philo];
-// 		data->philos[i].data = data;
-// 		i++;
-// 	}
-// 	return true;
-// }
+	pthread_mutex_lock(&philo->data->print_mutex);
+	if (!simulation_over(philo->data))
+	{
+		current_time = get_time_ms() - philo->data->start_time;
+		printf("%lld %d %s\n", current_time, philo->id, statut);
+	}
+	pthread_mutex_unlock(&philo->data->print_mutex);
+}
 
 int	initialize_philosophers(t_data *data, int ac, char **av)
 {

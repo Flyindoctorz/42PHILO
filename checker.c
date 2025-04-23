@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 15:07:44 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/22 15:28:35 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/23 12:02:50 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ bool	simulation_over(t_data *data)
 	bool	end;
 
 	pthread_mutex_lock(&data->end_mutex);
-	end = data->is_dead;
+	end = data->is_dead || data->all_ate;
 	pthread_mutex_unlock(&data->end_mutex);
 	return (end);
 }
@@ -25,14 +25,15 @@ bool	check_death(t_data *data)
 {
 	int	i;
 	long long	current_time;
+	long long	elapsed_time;
 
 	i = 0;
 	while(i < data->nb_philo)
 	{
 		pthread_mutex_lock(&data->mealtime_mutex);
 		current_time = get_time_ms();
-		if (!data->philos[i].currently_eating && 
-			(current_time - data->philos[i].last_meal_time) > data->time_to_die)
+		elapsed_time = current_time - data->philos[i].last_meal_time;
+		if (elapsed_time >= data->time_to_die && !data->philos[i].currently_eating)
 		{
 			pthread_mutex_unlock(&data->mealtime_mutex);
 			pthread_mutex_lock(&data->end_mutex);
@@ -80,11 +81,12 @@ void	*reaper_routine(void *data)
 	t_data	*data_ptr;
 
 	data_ptr = (t_data *)data;
+	usleep(1000);
 	while (!simulation_over(data_ptr))
 	{
 		if (check_death(data_ptr) || check_meals(data_ptr))
 			break ;
-		usleep(100);
+		usleep(500);
 	}
 	return (NULL);
 }
