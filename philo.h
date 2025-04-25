@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 14:09:13 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/25 14:47:40 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,11 +76,12 @@ int		initialize_philosophers(t_data *data, int ac, char **av);
 bool		simulation_over(t_data *data);
 bool		check_death(t_data *data);
 bool		check_meals(t_data *data);
-void		*reaper_routine(void *data);
+// void		*reaper_routine(void *data);
 
 // main
 void		routine_core(t_philo *philo);
-void		join_threads(t_data *data);
+// void		join_threads(t_data *data);
+void		monitor_and_join(t_data *data);
 
 
 #endif

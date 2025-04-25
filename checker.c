@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 15:07:44 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/23 12:02:50 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/25 15:07:19 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -76,17 +76,16 @@ bool	check_meals(t_data *data)
 	return (false);
 }
 
-void	*reaper_routine(void *data)
-{
-	t_data	*data_ptr;
+// void	*reaper_routine(void *data)
+// {
+// 	t_data	*data_ptr;
 
-	data_ptr = (t_data *)data;
-	usleep(1000);
-	while (!simulation_over(data_ptr))
-	{
-		if (check_death(data_ptr) || check_meals(data_ptr))
-			break ;
-		usleep(500);
-	}
-	return (NULL);
-}
+// 	data_ptr = (t_data *)data;
+// 	while (!simulation_over(data_ptr))
+// 	{
+// 		if (check_death(data_ptr) || check_meals(data_ptr))
+// 			break ;
+// 		usleep(500);
+// 	}
+// 	return (NULL);
+// }
