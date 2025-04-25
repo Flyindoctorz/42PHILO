@@ -6,7 +6,7 @@
 #    By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2025/04/22 17:00:14 by cgelgon           #+#    #+#              #
-#    Updated: 2025/04/23 12:51:55 by cgelgon          ###   ########.fr        #
+#    Updated: 2025/04/25 16:27:01 by cgelgon          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ LDFLAGS = -pthread
 SRC_DIR = .
 
 SRC_FILES = 	philo_utils.c \
+				parse_args.c \
 				philo_routine.c \
 				init_all.c \
 				checker.c \
@@ -70,11 +71,17 @@ re : fclean all
 norm:
 	@echo "$(BLUE)Running norminette check...$(RESET)"
 	@echo "$(YELLOW)Checking source files:$(RESET)"
-	@python3 -m c_formatter_42 $(ROOT_DIR)/*.c $(EXEC_DIR)/*.c $(BUILTINS_DIR)/*.c $(UTILS_DIR)/*.c \
-	    $(LEXER_DIR)/*.c $(DATA_DIR)/*.c $(READLINE_DIR)/*.c $(PARSER_DIR)/*.c
+	@python3 -m c_formatter_42 $(SRCS)
 	@echo "$(YELLOW)Checking header files:$(RESET)"
-	@python3 -m c_formatter_42 $(INCLUDE_DIR)/*.h
+	@python3 -m c_formatter_42 philo.h || true
 	@echo "$(GREEN)✨ Norminette check complete!$(RESET)"
+
+# Helgrind it (USAGE : make dataraces ARGS=" AV1 AV2 AV3 AV4")	
+dataraces:
+	@echo "$(BLUE)Running Helgrind data race detector...$(RESET)"
+	@echo "$(YELLOW)Input args: $(ARGS)$(RESET)"
+	@valgrind --tool=helgrind ./$(NAME) $(ARGS)
+	@echo "$(GREEN)Helgrind analysis complete!$(RESET)"
 
 push:
 	@git add .
@@ -88,4 +95,4 @@ debug:
 	@echo "$(BLUE)Running lldb...$(RESET)"
 	@lldb ./$(NAME)
 
-.PHONY: clean fclean norm push re debug all
+.PHONY: clean fclean norm push re debug all norm dataraces 
