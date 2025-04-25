@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 14:03:41 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/23 11:21:30 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/25 14:09:30 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ static bool	init_threads(t_data *data)
 		return (false);
 	}
 	pthread_detach(reaper);
+	// pthread_join(data->)
 	return (true);
 }
 

@@ -1,0 +1,826 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   checker.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/22 15:07:44 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/23 12:02:50 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+bool	simulation_over(t_data *data)
+{
+	bool	end;
+
+	pthread_mutex_lock(&data->end_mutex);
+	end = data->is_dead || data->all_ate;
+	pthread_mutex_unlock(&data->end_mutex);
+	return (end);
+}
+bool	check_death(t_data *data)
+{
+	int	i;
+	long long	current_time;
+	long long	elapsed_time;
+
+	i = 0;
+	while(i < data->nb_philo)
+	{
+		pthread_mutex_lock(&data->mealtime_mutex);
+		current_time = get_time_ms();
+		elapsed_time = current_time - data->philos[i].last_meal_time;
+		if (elapsed_time >= data->time_to_die && !data->philos[i].currently_eating)
+		{
+			pthread_mutex_unlock(&data->mealtime_mutex);
+			pthread_mutex_lock(&data->end_mutex);
+			data->is_dead = true;
+			pthread_mutex_unlock(&data->end_mutex);
+			pthread_mutex_lock(&data->print_mutex);
+			printf("%lld %d died\n", current_time - data->start_time, data->philos[i].id);
+			pthread_mutex_unlock(&data->print_mutex);
+			return (true);
+		}
+		pthread_mutex_unlock(&data->mealtime_mutex);
+		i++;
+	}
+	return (false);
+}
+bool	check_meals(t_data *data)
+{
+	int	i;
+	int	finished_eating;
+	
+	if (data->nb_must_eat == -1)
+		return (false);
+	i = 0;
+	finished_eating = 0;
+	pthread_mutex_lock(&data->mealtime_mutex);
+	while (i < data->nb_philo)
+	{
+		if (data->philos[i].nb_eat >= data->nb_must_eat)
+			finished_eating++;
+		i++;
+	}
+	pthread_mutex_unlock(&data->mealtime_mutex);
+	if (finished_eating == data->nb_philo)
+	{
+		pthread_mutex_lock(&data->end_mutex);
+		data->all_ate = true;
+		pthread_mutex_unlock(&data->end_mutex);
+		return (true);
+	}
+	return (false);
+}
+
+void	*reaper_routine(void *data)
+{
+	t_data	*data_ptr;
+
+	data_ptr = (t_data *)data;
+	usleep(1000);
+	while (!simulation_over(data_ptr))
+	{
+		if (check_death(data_ptr) || check_meals(data_ptr))
+			break ;
+		usleep(500);
+	}
+	return (NULL);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   cleaner.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/22 15:02:43 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/22 17:13:49 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	cleanup(t_data *data)
+{
+	int	i;
+
+	if (data->forks)
+	{
+		i = 0;
+		while (i < data->nb_philo)
+		{
+			pthread_mutex_destroy(&data->forks[i]);
+			i++;
+		}
+		free(data->forks);
+	}
+	pthread_mutex_destroy(&data->print_mutex);
+	pthread_mutex_destroy(&data->mealtime_mutex);
+	pthread_mutex_destroy(&data->end_mutex);
+	if (data->philos)
+		(free(data->philos));
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init_all.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/17 11:51:08 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/23 14:04:33 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+// bool	parse_args(t_data *data, int ac, char **av)
+// {
+// 	int	i;
+
+// 	i = 1;
+// 	while (i < ac)
+// 	{
+// 		if (!is_valid_number(av[i]))
+// 			return (false);
+// 		i++;
+// 	}
+// 	data->nb_philo = atoi(av[1]);
+// 	data->time_to_die = atoi(av[2]);
+// 	data->time_to_eat = atoi(av[3]);
+// 	data->time_to_sleep = atoi(av[4]);
+// 	if (ac == 6)
+// 		data->nb_must_eat = atoi(av[5]);
+// 	else
+// 		data->nb_must_eat = -1;
+// 	if (data->nb_philo < 1 || data->time_to_die <= 0 || data->time_to_eat <= 0
+// 		|| data->time_to_sleep <= 0 || (ac == 6 && data->nb_must_eat <= 0))
+// 		return (false);
+// 	return (true);
+// }
+
+bool    parse_args(t_data *data, int ac, char **av)
+{
+    int    i;
+
+    i = 1;
+    while (i < ac)
+    {
+        if (!is_valid_number(av[i]))
+            return (false);
+        i++;
+    }
+    data->nb_philo = atoi(av[1]);
+    data->time_to_die = atoi(av[2]);
+    data->time_to_eat = atoi(av[3]);
+    data->time_to_sleep = atoi(av[4]);
+    if (ac == 6)
+        data->nb_must_eat = atoi(av[5]);
+    else
+        data->nb_must_eat = -1;
+    
+    // Vérifications de validité plus complètes
+    if (data->nb_philo < 1 || data->nb_philo > 200)
+    {
+        printf("Error: number of philosophers must be between 1 and 200\n");
+        return (false);
+    }
+    if (data->time_to_die <= 0)
+    {
+        printf("Error: time_to_die must be positive\n");
+        return (false);
+    }
+    if (data->time_to_eat <= 0)
+    {
+        printf("Error: time_to_eat must be positive\n");
+        return (false);
+    }
+    if (data->time_to_sleep <= 0)
+    {
+        printf("Error: time_to_sleep must be positive\n");
+        return (false);
+    }
+    if (ac == 6 && data->nb_must_eat <= 0)
+    {
+        printf("Error: number_of_times_each_philosopher_must_eat must be positive\n");
+        return (false);
+    }
+    
+    // Avertissement si time_to_eat est proche ou supérieur à time_to_die
+    if (data->time_to_eat >= data->time_to_die)
+    {
+        printf("Warning: time_to_eat (%d) should be less than time_to_die (%d)\n", 
+               data->time_to_eat, data->time_to_die);
+        printf("This may cause philosophers to die before they can finish eating\n");
+        // Nous permettons quand même cette configuration, mais avec un avertissement
+    }
+    
+    return (true);
+}
+
+static bool	init_data(t_data *data)
+{
+	data->is_dead = false;
+	data->all_ate = false;
+	data->forks = malloc(sizeof(pthread_mutex_t) * data->nb_philo);
+	if (!data->forks)
+	{
+		printf("Error: malloc failed\n");
+		return (false);
+	}
+	data->philos = malloc(sizeof(t_philo) * data->nb_philo);
+	if (!data->philos)
+	{
+		printf("Error: malloc failed\n");
+		free(data->forks);
+		return (false);
+	}
+	return (true);
+}
+
+static bool	init_mutexes(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->nb_philo)
+	{
+		if (pthread_mutex_init(&data->forks[i], NULL))
+		{
+			printf("Error: mutex initialization failed\n");
+			return (false);
+		}
+		i++;
+	}
+	if (pthread_mutex_init(&data->print_mutex, NULL))
+		return (false);
+	if (pthread_mutex_init(&data->mealtime_mutex, NULL))
+		return (false);
+	if (pthread_mutex_init(&data->end_mutex, NULL))
+		return (false);
+	return (true);
+}
+static bool	init_philos(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->nb_philo)
+	{
+		data->philos[i].id = i + 1;
+		data->philos[i].nb_eat = 0;
+		data->philos[i].last_meal_time = get_time_ms();
+		data->philos[i].currently_eating = false;
+		data->philos[i].left_fork = &data->forks[i];
+		data->philos[i].right_fork = &data->forks[(i + 1) % data->nb_philo];
+		data->philos[i].data = data;
+		i++;
+	}
+	return (true);
+}
+bool	init_simulation(t_data *data)
+{
+	if (!init_data(data))
+		return (false);
+	if (!init_mutexes(data))
+		return (false);
+	if (!init_philos(data))
+		return (false);
+	return (true);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/31 14:03:41 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/25 14:09:30 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+// Initialiser les philosophes et reaper
+static bool	init_threads(t_data *data)
+{
+	int			i;
+	pthread_t	reaper;
+
+	data->start_time = get_time_ms();
+    i = 0;	
+	while (i < data->nb_philo)
+	{
+		data->philos[i].last_meal_time = data->start_time;
+		if (pthread_create(&data->philos[i].thread, NULL, routine_philosophe,
+				(void *)&data->philos[i]) != 0)
+		{
+			printf("Error: philos thread creation failed\n");
+			return (false);
+		}
+		i++;
+	}
+	usleep(5000);
+	if (pthread_create(&reaper, NULL, reaper_routine,
+				(void *)data) != 0)
+	{
+		printf("Error: reaper thread creation failed\n");
+		return (false);
+	}
+	pthread_detach(reaper);
+	// pthread_join(data->)
+	return (true);
+}
+
+void	join_threads(t_data *data)
+{
+	int	i;
+
+	i = 0;
+	while (i < data->nb_philo)
+	{
+		if (pthread_join(data->philos[i].thread, NULL) != 0)
+		{
+			printf("Error: thread join failed\n");
+			return ;
+		}
+		i++;
+	}
+}
+
+int	main(int ac, char **av)
+{
+	t_data data;
+
+	if (ac < 5 || ac > 6)
+	{
+		printf("Usage: ./philo number_of_philosophers time_to_die");
+		printf(" time_to_eat time_to_sleep");
+		printf("[number_of_times_each_philosopher_must_eat]\n");
+		return (1);
+	}
+	if (initialize_philosophers(&data, ac, av) != 0)
+		return (1);
+	if (!init_threads(&data))
+	{
+		cleanup(&data);
+		return (1);
+	}
+	join_threads(&data);
+	cleanup(&data);
+	return (0);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main_utils.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/22 13:00:06 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/23 14:01:06 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+
+// void	opti_delay(t_philo *philo)
+// {
+// 	int		base_delay;
+// 	t_data	*data;
+
+// 	data = philo->data;
+// 	base_delay = (data->time_to_eat * 200) / data->nb_philo;
+// 	if (philo->id % 2 == 0)
+// 		usleep(base_delay * (1 + philo->id % 10) / 5);
+// 	if (data->nb_philo > 50 && philo->id > data->nb_philo / 2)
+// 		usleep(base_delay);
+// }
+
+void opti_delay(t_philo *philo)
+{
+    t_data *data;
+    int base_delay;
+
+    data = philo->data;
+    
+    // Calcul d'un délai de base adapté au nombre de philosophes
+    base_delay = 1000; // 1ms de base
+    
+    // Stratégie d'échelonnement:
+    // 1. Délai progressif basé sur l'ID pour éviter que tous les philosophes 
+    //    ne commencent en même temps
+    usleep(base_delay * (philo->id % 3));
+    
+    // 2. Décalage entre pairs et impairs pour faciliter l'alternance
+    if (philo->id % 2 == 0)
+    {
+        // Les philosophes pairs attendent un peu pour laisser les impairs prendre leurs fourchettes
+        usleep(data->time_to_eat * 100); // 1/10 du temps de repas
+    }
+    
+    // 3. Ajustement spécial pour un grand nombre de philosophes
+    if (data->nb_philo > 20)
+    {
+        // Pour les grands groupes, échelonnez davantage les départs
+        usleep(base_delay * (philo->id % 5));
+    }
+}
+
+// Afficher le statut d'un philosophe
+void	get_status(t_philo *philo, char *statut)
+{
+	long long	current_time;
+
+	pthread_mutex_lock(&philo->data->print_mutex);
+	if (!simulation_over(philo->data))
+	{
+		current_time = get_time_ms() - philo->data->start_time;
+		printf("%lld %d %s\n", current_time, philo->id, statut);
+	}
+	pthread_mutex_unlock(&philo->data->print_mutex);
+}
+
+int	initialize_philosophers(t_data *data, int ac, char **av)
+{
+	if (!parse_args(data, ac, av))
+	{
+		printf("Error: invalid arguments\n");
+		return (1);
+	}
+	if (!init_simulation(data))
+	{
+		printf("Error: simulation init failed\n");
+		return (1);
+	}
+	return (0);	
+}
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    Makefile                                           :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2025/04/22 17:00:14 by cgelgon           #+#    #+#              #
+#    Updated: 2025/04/23 12:51:55 by cgelgon          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+NAME = philo
+CC = cc
+CFLAGS = -Wall -Wextra -Werror -g3
+INCLUDES = -I.
+LDFLAGS = -pthread
+
+SRC_DIR = .
+
+SRC_FILES = 	philo_utils.c \
+				philo_routine.c \
+				init_all.c \
+				checker.c \
+				cleaner.c \
+				main_utils.c \
+				routine_core.c \
+				main.c 
+			
+SRCS = $(addprefix $(SRC_DIR)/, $(SRC_FILES))
+
+OBJ_DIR = obj
+OBJS = $(patsubst %.c, $(OBJ_DIR)/%.o, $(notdir $(SRCS)))
+
+all : $(NAME)
+
+$(OBJ_DIR) :
+	@mkdir -p $@
+	
+$(NAME) : $(OBJ_DIR) $(OBJS)
+	@echo "$(BLUE)Compiling...$(RESET)"
+	@$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(OBJS)
+	@echo "$(BLUE)✨ Compilation complete!$(RESET)"
+
+$(OBJ_DIR)/%.o : $(SRC_DIR)/%.c | $(OBJ_DIR)
+	@echo "$(YELLOW)Compiling $<...$(RESET)"
+	@$(CC) $(CFLAGS) $(INCLUDES) -c $< -o $@
+
+# Colors
+BLUE = \033[0;34m
+GREEN = \033[0;32m
+RED = \033[0;31m
+YELLOW = \033[0;33m
+RESET = \033[0m
+BOLD = \033[1m
+
+# Règles de nettoyage
+clean:
+	@echo "$(RED)Cleaning object files...$(RESET)"
+	@rm -rf $(OBJS)
+	@echo "$(GREEN)✨ Cleaned!$(RESET)"
+
+fclean: clean
+	@echo "$(RED)Removing $(NAME)...$(RESET)"
+	@rm -f $(NAME)
+	@echo "$(GREEN)✨ Everything cleaned!$(RESET)"
+
+re : fclean all
+
+norm:
+	@echo "$(BLUE)Running norminette check...$(RESET)"
+	@echo "$(YELLOW)Checking source files:$(RESET)"
+	@python3 -m c_formatter_42 $(ROOT_DIR)/*.c $(EXEC_DIR)/*.c $(BUILTINS_DIR)/*.c $(UTILS_DIR)/*.c \
+	    $(LEXER_DIR)/*.c $(DATA_DIR)/*.c $(READLINE_DIR)/*.c $(PARSER_DIR)/*.c
+	@echo "$(YELLOW)Checking header files:$(RESET)"
+	@python3 -m c_formatter_42 $(INCLUDE_DIR)/*.h
+	@echo "$(GREEN)✨ Norminette check complete!$(RESET)"
+
+push:
+	@git add .
+	@echo -n "$(BLUE)Enter your commit message: $(END)"
+	@read commit_message; \
+	git commit -m "$$commit_message"; \
+	git push; \
+	echo "$(YELLOW)All has been pushed with '$$commit_message' in commit$(END)"
+
+debug:
+	@echo "$(BLUE)Running lldb...$(RESET)"
+	@lldb ./$(NAME)
+
+.PHONY: clean fclean norm push re debug all/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.h                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/25 14:09:13 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#ifndef PHILO_H
+# define PHILO_H
+
+# include <pthread.h>
+# include <stdio.h>
+# include <stdlib.h>
+# include <unistd.h>
+# include <sys/time.h>
+# include <stdbool.h>
+# include <string.h>
+# include <limits.h>
+
+typedef struct s_philo
+{
+	int				id;
+	int				nb_eat;
+	long long		last_meal_time;
+	bool			currently_eating;
+	pthread_mutex_t	*left_fork;
+	pthread_mutex_t	*right_fork;
+	pthread_t		thread;
+	struct s_data	*data;
+}	t_philo;
+
+typedef struct s_data
+{
+	int				nb_philo;
+	int				time_to_die;
+	int				time_to_eat;
+	int				time_to_sleep;
+	int				nb_must_eat;
+	bool			all_ate;
+	bool			is_dead;
+	long long		start_time;
+	// pthreat_t 		reaperiho;
+	pthread_mutex_t	*forks;
+	pthread_mutex_t	print_mutex;
+	pthread_mutex_t	mealtime_mutex;
+	pthread_mutex_t	end_mutex;
+	t_philo			*philos;
+}	t_data;
+
+// philo_utils
+long long	get_time_ms(void);
+void		wait_ms(int ms);
+bool		is_valid_number(char *str);
+void		opti_delay(t_philo *philo);
+void		get_status(t_philo *philo, char *statut);
+
+// daily routine
+void	*routine_philosophe(void *philosophe);
+
+// free && cleanup
+void		cleanup(t_data *data);
+
+// pre_init
+bool		parse_args(t_data *data, int ac, char **av);
+bool		init_simulation(t_data *data);
+
+// init 
+int		initialize_philosophers(t_data *data, int ac, char **av);
+
+// checker 
+bool		simulation_over(t_data *data);
+bool		check_death(t_data *data);
+bool		check_meals(t_data *data);
+void		*reaper_routine(void *data);
+
+// main
+void		routine_core(t_philo *philo);
+void		join_threads(t_data *data);
+
+
+#endif/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_routine.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/31 13:41:57 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/23 12:45:04 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+// if alone
+static void	*if_alone(void *philosophe)
+{
+	t_philo	*philo;
+	t_data	*data;
+
+	philo = (t_philo *)philosophe;
+	data = philo->data;
+	pthread_mutex_lock(&philo->data->mealtime_mutex);
+	philo->last_meal_time = get_time_ms();
+	pthread_mutex_unlock(&philo->data->mealtime_mutex);
+	if (data->nb_philo == 1)
+		return (if_alone(philo), NULL);
+	opti_delay(philo);
+	routine_core(philo);
+	return (NULL);
+}
+
+// Routine principale d'un philosophe
+void	*routine_philosophe(void *philosophe)
+{
+	t_philo	*philo;
+	t_data	*data;
+
+	philo = (t_philo *)philosophe;
+	data = philo->data;
+	pthread_mutex_lock(&philo->data->mealtime_mutex);
+	philo->last_meal_time = get_time_ms();
+	pthread_mutex_unlock(&philo->data->mealtime_mutex);
+	if (data->nb_philo == 1)
+		return (if_alone(philo), NULL);
+	opti_delay(philo);
+	routine_core(philo);
+	return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo_utils.c                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/03/31 13:41:20 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/22 17:31:40 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+/* Obtenir le temps actuel en millisecondes */
+long long	get_time_ms(void)
+{
+	struct timeval	tv;
+
+	gettimeofday(&tv, NULL);
+	return ((tv.tv_sec * 1000) + (tv.tv_usec / 1000));
+}
+
+/* Fonction d'attente précise en millisecondes */
+void	wait_ms(int ms)
+{
+	long long	start;
+
+	start = get_time_ms();
+	while (get_time_ms() - start < ms)
+		usleep(100);
+}
+
+bool	is_valid_number(char *str)
+{
+	int	i;
+
+	i = 0;
+	while (str[i])
+	{
+		if (str[i] < '0' || str[i] > '9')
+			return (false);
+		i++;
+	}
+	return (true);
+}/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   routine_core.c                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/04/23 12:32:54 by cgelgon           #+#    #+#             */
+/*   Updated: 2025/04/23 14:10:18 by cgelgon          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+// // commence a manger
+// static void	init_meal_time(t_philo *philo)
+// {
+// 	pthread_mutex_lock(&philo->data->mealtime_mutex);
+// 	philo->last_meal_time = get_time_ms();
+// 	pthread_mutex_unlock(&philo->data->mealtime_mutex);
+// }
+// pense
+static void	think_status(t_philo *philo)
+{
+	get_status(philo, "is thinking");
+}
+// Prendre les fourchettes pour manger
+static void takeafork(t_philo *philo)
+{
+    t_data *data;
+
+    data = philo->data;
+	
+	if (philo->id % 2 == 0)
+	{
+        pthread_mutex_lock(philo->left_fork);
+        get_status(philo, "has taken a fork");
+		if (simulation_over(data))
+		{
+			(pthread_mutex_unlock(philo->left_fork));
+			return ;
+		}
+        pthread_mutex_lock(philo->right_fork);
+        get_status(philo, "has taken a fork");
+    }
+    else
+    {
+        pthread_mutex_lock(philo->left_fork);
+        get_status(philo, "has taken a fork");
+		if (simulation_over(data))
+			(pthread_mutex_unlock(philo->left_fork));
+        pthread_mutex_lock(philo->right_fork);
+        get_status(philo, "has taken a fork");
+    }
+}
+// Manger : mettre à jour l'heure du dernier repas et attendre
+static void just_do_eat(t_philo *philo)
+{
+	pthread_mutex_lock(&philo->data->mealtime_mutex);
+	philo->last_meal_time = get_time_ms();
+	philo->currently_eating = true;
+	pthread_mutex_unlock(&philo->data->mealtime_mutex);
+	get_status(philo, "is eating");
+	wait_ms(philo->data->time_to_eat);
+	pthread_mutex_lock(&philo->data->mealtime_mutex);
+	philo->nb_eat++;
+	philo->currently_eating = false;
+	pthread_mutex_unlock(&philo->data->mealtime_mutex);
+}
+
+void	routine_core(t_philo *philo)
+{
+	t_data *data;
+
+	data = philo->data;
+	while (!simulation_over(data))
+	{
+		think_status(philo);
+		if (simulation_over(data))
+			break ;
+		takeafork(philo);
+		if (simulation_over(data))
+		{
+			pthread_mutex_unlock(philo->left_fork);
+			pthread_mutex_unlock(philo->right_fork);
+			break ;
+		}
+		just_do_eat(philo);
+		pthread_mutex_unlock(philo->left_fork);
+		pthread_mutex_unlock(philo->right_fork);
+		if (simulation_over(data))
+			break ;
+		get_status(philo, "is sleeping");
+		wait_ms(data->time_to_sleep);
+	}
+}

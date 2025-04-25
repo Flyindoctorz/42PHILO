@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/23 13:43:37 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/25 14:09:13 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,7 @@ typedef struct s_data
 	bool			all_ate;
 	bool			is_dead;
 	long long		start_time;
+	// pthreat_t 		reaperiho;
 	pthread_mutex_t	*forks;
 	pthread_mutex_t	print_mutex;
 	pthread_mutex_t	mealtime_mutex;
