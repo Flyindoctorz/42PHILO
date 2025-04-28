@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 15:53:41 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 16:14:29 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,13 @@
 # include <string.h>
 # include <sys/time.h>
 # include <unistd.h>
+
+typedef struct s_time
+{
+	long long		ct_time;
+	long long		ed_time;
+	int				i;
+}					t_time;
 
 typedef struct s_philo
 {

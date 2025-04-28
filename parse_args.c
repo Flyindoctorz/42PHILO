@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/25 16:26:03 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 16:52:49 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 16:14:58 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -62,8 +62,6 @@ static bool	validate_additional_args(t_data *data, int ac)
 	{
 		printf("time_to_eat (%d) very close time_to_die (%d)\n",
 			data->time_to_eat, data->time_to_die);
-		// printf("philos might die before finishing eating\n");
-		// return (false);
 	}
 	return (true);
 }

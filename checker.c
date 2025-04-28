@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 15:07:44 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 16:36:47 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 16:15:40 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,38 +17,36 @@ bool	simulation_over(t_data *data)
 	bool	end;
 
 	pthread_mutex_lock(&data->end_mutex);
-	end = data->is_dead || data->all_ate;
+	end = (data->is_dead || data->all_ate);
 	pthread_mutex_unlock(&data->end_mutex);
 	return (end);
 }
 
 bool	check_death(t_data *data)
 {
-	int			i;
-	long long	current_time;
-	long long	elapsed_time;
+	t_time	time;
 
-	i = 0;
-	while (i < data->nb_philo)
+	time.i = 0;
+	while (time.i < data->nb_philo)
 	{
 		pthread_mutex_lock(&data->mealtime_mutex);
-		current_time = get_time_ms();
-		elapsed_time = current_time - data->philos[i].last_meal_time;
-		if (elapsed_time >= data->time_to_die
-			&& !data->philos[i].currently_eating)
+		time.ct_time = get_time_ms();
+		time.ed_time = time.ct_time - data->philos[time.i].last_meal_time;
+		if (time.ed_time >= data->time_to_die
+			&& !data->philos[time.i].currently_eating)
 		{
 			pthread_mutex_unlock(&data->mealtime_mutex);
 			pthread_mutex_lock(&data->end_mutex);
 			data->is_dead = true;
 			pthread_mutex_unlock(&data->end_mutex);
 			pthread_mutex_lock(&data->print_mutex);
-			printf("%lld %d died\n", current_time - data->start_time,
-				data->philos[i].id);
+			printf("%lld %d died\n", time.ct_time - data->start_time,
+				data->philos[time.i].id);
 			pthread_mutex_unlock(&data->print_mutex);
 			return (true);
 		}
 		pthread_mutex_unlock(&data->mealtime_mutex);
-		i++;
+		time.i++;
 	}
 	return (false);
 }
