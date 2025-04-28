@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/04/22 15:07:44 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/28 16:15:40 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 18:27:26 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,29 +51,70 @@ bool	check_death(t_data *data)
 	return (false);
 }
 
-bool	check_meals(t_data *data)
-{
-	int	i;
-	int	finished_eating;
+// bool	check_meals(t_data *data)
+// {
+// 	int	i;
+// 	int	finished_eating;
 
-	if (data->nb_must_eat == -1)
-		return (false);
-	i = 0;
-	finished_eating = 0;
-	pthread_mutex_lock(&data->mealtime_mutex);
-	while (i < data->nb_philo)
-	{
-		if (data->philos[i].nb_eat >= data->nb_must_eat)
-			finished_eating++;
-		i++;
-	}
-	pthread_mutex_unlock(&data->mealtime_mutex);
-	if (finished_eating == data->nb_philo)
-	{
-		pthread_mutex_lock(&data->end_mutex);
-		data->all_ate = true;
-		pthread_mutex_unlock(&data->end_mutex);
-		return (true);
-	}
-	return (false);
+// 	if (data->nb_must_eat == -1)
+// 		return (false);
+// 	i = 0;
+// 	finished_eating = 0;
+// 	pthread_mutex_lock(&data->mealtime_mutex);
+// 	while (i < data->nb_philo)
+// 	{
+// 		if (data->philos[i].nb_eat >= data->nb_must_eat)
+// 			finished_eating++;
+// 		i++;
+// 	}
+// 	pthread_mutex_unlock(&data->mealtime_mutex);
+// 	if (finished_eating == data->nb_philo)
+// 	{
+// 		pthread_mutex_lock(&data->end_mutex);
+// 		data->all_ate = true;
+// 		pthread_mutex_unlock(&data->end_mutex);
+// 		return (true);
+// 	}
+// 	return (false);
+// }
+
+
+bool check_meals(t_data *data)
+{
+    static int last_finished_count = 0;
+    int i;
+    int finished_eating;
+
+    if (data->nb_must_eat == -1)
+        return (false);
+        
+    // Vérifier moins souvent pour réduire la contention des mutex
+    static int skip_count = 0;
+    if (++skip_count < 5 && data->nb_philo > 100)
+        return (false);
+    skip_count = 0;
+    
+    i = 0;
+    finished_eating = 0;
+    pthread_mutex_lock(&data->mealtime_mutex);
+    while (i < data->nb_philo) {
+        if (data->philos[i].nb_eat >= data->nb_must_eat)
+            finished_eating++;
+        i++;
+    }
+    pthread_mutex_unlock(&data->mealtime_mutex);
+    
+    // Optimisation: ne changez l'état que si quelque chose a changé
+    if (finished_eating > last_finished_count) {
+        last_finished_count = finished_eating;
+        
+        if (finished_eating == data->nb_philo) {
+            pthread_mutex_lock(&data->end_mutex);
+            data->all_ate = true;
+            pthread_mutex_unlock(&data->end_mutex);
+            return (true);
+        }
+    }
+    
+    return (false);
 }

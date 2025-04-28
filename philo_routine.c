@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:41:57 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 15:54:50 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 18:28:37 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,11 +27,8 @@ void	*routine_philosophe(void *philosophe)
 	{
 		pthread_mutex_lock(philo->left_fork);
 		get_status(philo, "has taken a fork");
-		get_status(philo, "is thinking");
-		while (!simulation_over(data))
-			usleep(1000);
+		wait_ms(data->time_to_die);
 		pthread_mutex_unlock(philo->left_fork);
-		return (NULL);
 	}
 	opti_delay(philo);
 	routine_core(philo);

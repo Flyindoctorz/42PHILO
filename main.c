@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 14:03:41 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/25 16:06:41 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 18:27:43 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,26 +32,52 @@ static bool	init_threads(t_data *data)
 	return (true);
 }
 
-void	monitor_and_join(t_data *data)
-{
-	int	i;
+// void	monitor_and_join(t_data *data)
+// {
+// 	int	i;
 
-	i = 0;
-	while (!simulation_over(data))
-	{
-		if (check_death(data) || check_meals(data))
-			break ;
-		usleep(500);
-	}
-	pthread_mutex_lock(&data->end_mutex);
-	data->is_dead = true;
-	pthread_mutex_unlock(&data->end_mutex);
-	while (i < data->nb_philo)
-	{
-		pthread_join(data->philos[i].thread, NULL);
-		i++;
-	}
-	usleep(100);
+// 	i = 0;
+// 	while (!simulation_over(data))
+// 	{
+// 		if (check_death(data) || check_meals(data))
+// 			break ;
+// 		usleep(100);
+// 	}
+// 	pthread_mutex_lock(&data->end_mutex);
+// 	data->is_dead = true;
+// 	pthread_mutex_unlock(&data->end_mutex);
+// 	while (i < data->nb_philo)
+// 	{
+// 		pthread_join(data->philos[i].thread, NULL);
+// 		i++;
+// 	}
+// 	usleep(100);
+// }
+
+void monitor_and_join(t_data *data)
+{
+    int i;
+    int check_interval;
+    
+    // Adapter l'intervalle de vérification selon le nombre de philosophes
+    check_interval = (data->nb_philo > 100) ? 1000 : 500;
+    
+    while (!simulation_over(data)) {
+        // Vérifier la mort moins fréquemment pour les grands nombres
+        if (check_death(data) || check_meals(data))
+            break;
+        usleep(check_interval);
+    }
+    
+    pthread_mutex_lock(&data->end_mutex);
+    data->is_dead = true;
+    pthread_mutex_unlock(&data->end_mutex);
+    
+    i = 0;
+    while (i < data->nb_philo) {
+        pthread_join(data->philos[i].thread, NULL);
+        i++;
+    }
 }
 
 int	main(int ac, char **av)
