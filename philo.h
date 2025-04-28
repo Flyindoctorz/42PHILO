@@ -6,7 +6,7 @@
 /*   By: cgelgon <cgelgon@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/31 13:40:36 by cgelgon           #+#    #+#             */
-/*   Updated: 2025/04/28 16:14:29 by cgelgon          ###   ########.fr       */
+/*   Updated: 2025/04/28 19:10:15 by cgelgon          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ void				wait_ms(int ms);
 bool				is_valid_number(char *str);
 void				opti_delay(t_philo *philo);
 void				get_status(t_philo *philo, char *statut);
+void				release_forks(t_philo *philo);
 
 // daily routine
 void				*routine_philosophe(void *philosophe);
